@@ -21,38 +21,35 @@ public class Pong extends ApplicationAdapter
 {
     /*
      * Starts the game in "easy" mode for the right side player (the one using the arrow keys) or the left side player, (the one using WASD). 
-     * In easy mode the paddle is larger and easier to use.
-     * I had to modify a few lines of code for each respective key to start the game while having the modified paddles (rectangle objects).
+     * In easy mode the paddle size is increased allowing for easier use.
      */
     
-    private OrthographicCamera camera; //the camera to our world
-    private Viewport viewport; //maintains the ratios of your world
+    private OrthographicCamera camera; //the world camera 
+    private Viewport viewport; //maintains the ratios of the world
     private ShapeRenderer renderer; //used to draw textures and fonts 
     private BitmapFont font; //used to draw fonts (text)
     private SpriteBatch batch; //also needed to draw fonts (text)
 
     private Rectangle leftPaddle;//Rectangle object to represent the left paddle
-    private Rectangle rightPaddle; //same, Rectangle is a class from libGDX
-    private Circle ball; //Circle object to represent the ball (Circle is a class form libGDX)
+    private Rectangle rightPaddle; //Rectangle object to represent the right paddle
+    private Circle ball; //Circle object to represent the ball 
     private float ballAngle; //holds the angle the ball is traveling
     private boolean started = false; //has the game started yet
-    private int player1Score = 0; //keep track of scores
+    private int player1Score = 0; //scores
     private int player2Score = 0; 
 
-    //WORLD_WIDTH and WORLD_HEIGHT proportional to config.width and config.height in GameLauncher class
     public static final float WORLD_WIDTH = 800; 
     public static final float WORLD_HEIGHT = 480;
 
-    //other constance we will need
     public static final float PADDLE_WIDTH = 20; 
     public static final float PADDLE_HEIGHT = 80;
     public static final float RADIUS = 15;
     public static final float PADDLE_SPEED = 10;
     public static final float BALL_SPEED = 10;
 
-    @Override//called once when the game is started (kind of like our constructor)
+    @Override
     public void create(){
-        camera = new OrthographicCamera(); //camera for our world, it is not moving
+        camera = new OrthographicCamera(); //non-moving camera
         viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera); //maintains world units from screen units
         renderer = new ShapeRenderer(); 
         font = new BitmapFont(); 
@@ -66,12 +63,11 @@ public class Pong extends ApplicationAdapter
         ballAngle = 0; 
     }
 
-    @Override//this is called 60 times a second, all the drawing is in here, or helper
+    @Override//called 60 times a second, all the drawing is in here, or in helper
     //methods that are called from here
     public void render(){
         viewport.apply(); 
-        //these two lines wipe and reset the screen so when something action had happened
-        //the screen won't have overlapping images
+        
         Gdx.gl.glClearColor(0, 0, 0.2f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
@@ -85,9 +81,7 @@ public class Pong extends ApplicationAdapter
 
         }
 
-        //check for input: These are the controls for the game.
-        //Example; the up key moves the right paddle up and the W key
-        //modify the y coordinate of the appropriate paddle depending on what key is pressed
+        //check for input
         if(Gdx.input.isKeyPressed(Keys.UP))
         {
             rightPaddle.y += PADDLE_SPEED;           
@@ -112,7 +106,7 @@ public class Pong extends ApplicationAdapter
             leftPaddle = new Rectangle(0, 0, PADDLE_WIDTH, PADDLE_HEIGHT); 
             rightPaddle = new Rectangle(WORLD_WIDTH - PADDLE_WIDTH, WORLD_HEIGHT / 2 - PADDLE_HEIGHT / 2, PADDLE_WIDTH, PADDLE_HEIGHT);
         }
-        //Starts the game in "easy" mode for the right side player (the one using the arrow keys). In easy mode the paddle is larger and easier to use.
+        //Starts the game in "easy" mode for the right side player (the one using the arrow keys). In easy mode the paddle size is increased allowing for easier use.
         if(Gdx.input.isKeyPressed(Keys.CONTROL_RIGHT))
         {
             started = true;  
@@ -127,12 +121,6 @@ public class Pong extends ApplicationAdapter
             rightPaddle = new Rectangle(WORLD_WIDTH - PADDLE_WIDTH, WORLD_HEIGHT / 2 - PADDLE_HEIGHT / 2, PADDLE_WIDTH, PADDLE_HEIGHT);
         }
 
-        //TODO add a total 4 if statements to not let the paddles
-        //move off the screen. You can access the
-        //bottom left coordinate of the paddles like this:
-        //leftPaddle.x and leftPaddle.y 
-        //You will need the constants PADDLE_HEIGHT
-        //WORLD_HEIGHT 
         if(leftPaddle.y > WORLD_HEIGHT)
             leftPaddle.y = WORLD_HEIGHT - PADDLE_HEIGHT;
         if(leftPaddle.y < 0)
@@ -143,7 +131,6 @@ public class Pong extends ApplicationAdapter
         if(rightPaddle.y < 0)
             rightPaddle.y = PADDLE_HEIGHT;
 
-        //make the ball bounce of the top and bottom walls
         if(ball.y + RADIUS > WORLD_HEIGHT)
             ballAngle *= -1; 
         if(ball.y - RADIUS < 0)
@@ -153,34 +140,19 @@ public class Pong extends ApplicationAdapter
         if(Intersector.overlaps(ball, rightPaddle))
         {
             //determine what angle the ball will bounce off the paddle
-
-            //ball.y - rightPaddle.y determines the distance bettween the bottom left of the paddle
-            //and where the ball is when it hits the paddle
-            //example if the ball's y coordinate is 10 and the rightPaddle.y is 4, the ball hit 6 units
-            //above the bottom left of the paddle
-            //Then dividing by the PADDLE_HEIGHT gets a percentage from 0 to 1, 
-            //example if the PADDLE_HEIGHT is 20 then the 6 from before would result in 6/20 = .3
-            //in other words the ball hit 3/10 of the way up the paddle
             float percentOfPaddle = (ball.y - rightPaddle.y) / PADDLE_HEIGHT;
-
-            //percentOfPaddle will be between 0 and 1, thus the ball angle will be between 225 and 135
             ballAngle = 225 - (percentOfPaddle * 90); //place for constants possibly? 
 
         }
 
         if(Intersector.overlaps(ball, leftPaddle))
         {
-            //similar logic to above
             float percentOfPaddle = (ball.y - leftPaddle.y) / PADDLE_HEIGHT;
 
             ballAngle = -45 + (percentOfPaddle * 90); 
 
         }
 
-        //TODO:check if each player has scored based on the 
-        //position of the ball, and reset the ball.x and ball.y 
-        //to the center of the screen, ballAngle back to 0, started back to false
-        //and increment player1Score or player2Score
         if(ball.x > WORLD_WIDTH)
         {
             ball.x += BALL_SPEED * MathUtils.cosDeg(ballAngle);
@@ -208,9 +180,6 @@ public class Pong extends ApplicationAdapter
         renderer.setColor(Color.WHITE); 
         renderer.begin(ShapeType.Filled);
 
-        //draw each rectangle based on the attributes of the Rectangle objects - leftPaddle
-        //and rightPaddle
-        //draw the circle based on the attributes of the Circle object - ball
         renderer.rect(leftPaddle.x, leftPaddle.y, leftPaddle.width, leftPaddle.height);
         renderer.rect(rightPaddle.x, rightPaddle.y, rightPaddle.width, rightPaddle.height);
         renderer.circle(ball.x, ball.y, ball.radius);
